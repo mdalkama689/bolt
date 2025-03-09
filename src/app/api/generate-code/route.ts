@@ -8,7 +8,7 @@ import { getSystemPrompt } from "@/utils/prompt";
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = "AIzaSyBy_oCUjW1UtpZ146LxuGiacVr51JVi3Ic";
+    const apiKey = "";
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
