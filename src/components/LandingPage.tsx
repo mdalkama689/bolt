@@ -1,13 +1,55 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
+import { useSession } from "next-auth/react";
+import { Send, SendHorizonal, SendHorizonalIcon } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { ApiResponse, Message } from "@/utils/types";
 
 function LandingPage() {
+  const { status, data } = useSession();
+  const firstChar = data?.user.email?.charAt(0).toUpperCase();
+  const router = useRouter();
+  const [prompt, setPrompt] = useState<string>("");
+
+  interface IRoomId {
+    roomId: string;
+  }
+  const handlePrompt = async () => {
+    try {
+      if (!prompt.trim()) {
+        return toast.error("Please provide the prompt!");
+      }
+      const response = await axios.post<ApiResponse<IRoomId>>(
+        "/api/create-room",
+        { prompt }
+      );
+
+      const roomId = response.data.data?.roomId;
+
+      if (response.data.success) {
+        router.push(`/room/${roomId}`);
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response.data.message || "Error while creating the room!";
+      toast.error(errorMessage);
+    }
+  };
   return (
     <div>
       {/* navbar  */}
       <div className="flex items-center justify-between px-2 py-2">
         <h1 className="font-bold text-4xl ">Bolt </h1>
-        <Button variant="default">Signin </Button>
+        {status === "unauthenticated" ? (
+          <Button variant="default">Signin </Button>
+        ) : (
+          <p className="bg-white h-9 w-9 text-black text-xl cursor-pointer font-semibold flex items-center justify-center rounded-full">
+            {firstChar}
+          </p>
+        )}
       </div>
 
       {/* build main */}
@@ -18,13 +60,21 @@ function LandingPage() {
           Prompt, run, edit and deploy the full stack web app
         </p>
         {/* input form  */}
-        <div className=" mt-6">
+        <div className=" mt-6 relative">
           <textarea
             placeholder="How can we help you?"
             className="resize-none px-5 py-4 border border-gray-200 rounded "
             cols={70}
             rows={5}
+            onChange={(e) => setPrompt(e.target.value)}
+            value={prompt}
           ></textarea>
+          <div
+            className="absolute bottom-3 right-3 cursor-pointer"
+            onClick={handlePrompt}
+          >
+            <SendHorizonal />
+          </div>
         </div>
         {/* suggestion */}
 

@@ -23,6 +23,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ApiResponse } from "@/utils/types";
 
 function Signup() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -39,8 +40,7 @@ function Signup() {
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     try {
       setIsLoading(true);
-      const response = await axios.post("/api/signup", data);
-      console.log(response.data);
+      const response = await axios.post<ApiResponse>("/api/signup", data);
       if (response.data.success) {
         router.push("/signin");
       }

@@ -1,7 +1,9 @@
+'use client'
 import { ThemeProvider } from "@/components/theme-provider";
 import React from "react";
 import "./globals.css";
 import { Toaster } from "sonner";
+import {SessionProvider} from'next-auth/react'
 
 export default function RootLayout({
   children,
@@ -19,7 +21,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+          <SessionProvider>
+          {children}
+          </SessionProvider>
             <Toaster />
           </ThemeProvider>
         </body>

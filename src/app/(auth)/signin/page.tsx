@@ -20,8 +20,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import signInSchema from "@/types/signin-schema";
 import Link from "next/link";
+import signInSchema from "@/types/signin-schema";
 
 function Signin() {
   const [isLoading, setIsLoading] = useState<boolean>(false);

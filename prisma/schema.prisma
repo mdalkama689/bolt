@@ -8,9 +8,16 @@ datasource db {
 }
 
 model User {
-  id Int @default(autoincrement()) @id
+  id       Int    @id @default(autoincrement())
   fullName String
-  email String
+  email    String
   password String
+  chats    Chat[]
 }
 
+model Chat {
+  id      Int  @id @default(autoincrement())
+  message Json
+  userId  Int
+  user    User @relation(fields: [userId], references: [id])
+}

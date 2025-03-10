@@ -3,6 +3,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import GoogleProvider from "next-auth/providers/google";
+
 const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -20,8 +21,8 @@ const authOptions: NextAuthOptions = {
         },
       },
       async authorize(credentials, req) {
-        if (!credentials?.password || !credentials.email) {
-          throw new Error("Please provide both email and password");
+        if (!credentials?.password || !credentials?.email) {
+          throw new Error("Please provide email and password both");
         }
 
         const user = await prisma.user.findFirst({

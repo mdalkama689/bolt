@@ -3,11 +3,10 @@ import signUpSchema from "@/types/signup-schema";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    console.log('start')
     const body = await req.json();
-console.log(body)
+
     const parseData = signUpSchema.safeParse(body);
 
     if (!parseData.success) {
