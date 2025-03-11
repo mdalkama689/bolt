@@ -25,16 +25,16 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        message: "success",
+        message: "fetch your chat successfully!",
         data: chat?.message,
       },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
-        message: "eroro",
+        message: error.message || "Error during finding your chat!",
       },
       { status: 400 }
     );
