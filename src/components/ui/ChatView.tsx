@@ -82,7 +82,7 @@ function ChatView({ roomId }: { roomId: string }) {
         Your Chat
       </h1>
 
-      <div className="flex flex-col overflow-y-auto px-4 pb-2 gap-3 h-[70vh]">
+      <div className="flex flex-col overflow-y-auto mt-5 px-4 pb-2 gap-3 h-[70vh]">
         {messages.length > 0 &&
           messages.map((message, index) => (
             <div
@@ -111,7 +111,7 @@ function ChatView({ roomId }: { roomId: string }) {
         <div ref={messageEndRef} className="pb-10"></div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-black border-t border-gray-700">
+      <div className="absolute w-1/5 bottom-0 left-0 right-0 p-4 bg-black border-t border-gray-700">
         <div className="relative">
           <textarea
             placeholder="How can we help you?"
