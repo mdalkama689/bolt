@@ -1,7 +1,7 @@
 "use client";
 import { ApiResponse, Message } from "@/utils/types";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
   Loader2,
   Loader2Icon,
@@ -10,9 +10,20 @@ import {
 } from "lucide-react";
 import CHAT_PROMPT from "@/utils/prompt";
 import { toast } from "sonner";
+import { MessageContext } from "@/context/MessageContext";
+import { useRouter } from "next/navigation";
 
 function ChatView({ roomId }: { roomId: string }) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const router = useRouter();
+  const messageContext = useContext(MessageContext);
+
+  if (!messageContext) {
+    toast.error("Something went wrong!");
+    router.push("/");
+    return;
+  }
+  const { messages, setMessages } = messageContext;
+
   const [input, setInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messageEndRef = useRef<HTMLDivElement | null>(null);

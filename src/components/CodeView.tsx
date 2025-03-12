@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   SandpackProvider,
   SandpackFileExplorer,
@@ -8,10 +8,62 @@ import {
   SandpackCodeEditor,
   SandpackPreview,
 } from "@codesandbox/sandpack-react";
-import staterCode from "@/utils/boilerPlateCode";
-function CodeView() {
-  const [isActive, setIsActive] = useState("code");
+import {  staterCode, tailwindCDN } from "@/utils/boilerPlateCode";
+import axios from "axios";
+import { ApiResponse } from "@/utils/types";
+import { useRouter } from "next/navigation";
+import { MessageContext } from "@/context/MessageContext";
+import { toast } from "sonner";
+import { CODE_GENERATE_PROMPT } from "@/utils/prompt";
 
+function CodeView() {
+  const router = useRouter()
+  const messageContext = useContext(MessageContext)
+
+  if(!messageContext) {
+    toast.error('Something went wrong!')
+router.push('/')
+return
+  }
+ const  {messages}  = messageContext
+  const [isActive, setIsActive] = useState<string>("code");
+  const [file, setFile] = useState(staterCode);
+const [dependencies, setDependencies] = useState()
+
+  useEffect(() => {
+    const lastMessage = messages.length > 0 && messages[messages.length - 1];
+    if (lastMessage && lastMessage.role === "user") {
+getCode()
+    }
+  }, [messages]);
+;
+
+  const getCode = async () => {
+    try {
+   toast.info('start')
+      const PROMPT = JSON.stringify(messages) + " " + CODE_GENERATE_PROMPT
+   
+      const res = await axios.post<ApiResponse<string>>(
+        "/api/ai-code-response",
+        {
+          prompt: PROMPT
+        }
+      );
+
+      if (res.data.success && res.data.data) {
+    const parsedResponse = JSON.parse(res.data.data)
+        const mergedFile = { ...staterCode, ...parsedResponse.files }
+        setFile(mergedFile);
+        console.log(parsedResponse)
+        setDependencies(parsedResponse.dependencies)
+        toast.success('success')
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      console.log("done");
+    }
+  };
   return (
     <div className="mt-6 ">
       <div className="flex items-center  px-1 py-2 justify-start gap-2 border bg-zinc-800  rounded-lg w-fit">
@@ -39,26 +91,26 @@ function CodeView() {
       <SandpackProvider
         template="react"
         theme={"dark"}
-        files={{
-          ...staterCode.htmlFile,
-          ...staterCode.indexCssFile,
-          ...staterCode.postCssFile,
-          ...staterCode.tailwindConfigFile,
+        files={file}
+        customSetup={{
+          dependencies: {
+            ...dependencies,
+          },
+        }}
+        options={{
+          externalResources: [tailwindCDN],
         }}
       >
-        <SandpackLayout className="h-[80vh] w-[80%] ">
+        <SandpackLayout>
           {isActive === "code" && (
-            <div className="flex w-full ">
-              <div className="w-[20%] ">
-                <SandpackFileExplorer  />
-              </div>
-              <p className="h-screen w-1  bg-white"></p>
-              <div className="w-[80%]">
-                <SandpackCodeEditor  />
-              </div>
-            </div>
+            <>
+              <SandpackFileExplorer style={{ height: "80vh" }} />
+              <SandpackCodeEditor style={{ height: "80vh" }} />
+            </>
           )}
-          {isActive === "preview" && <SandpackPreview showNavigator={true} />}
+          {isActive === "preview" && (
+            <SandpackPreview showNavigator={true} style={{ height: "80vh" }} />
+          )}
         </SandpackLayout>
       </SandpackProvider>
     </div>
