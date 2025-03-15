@@ -2,14 +2,9 @@ import prisma from "@/lib/prisma";
 import { NextAuthOptions } from "next-auth";
 import CredentialProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-import GoogleProvider from "next-auth/providers/google";
 
 const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.CLIENT_ID!,
-      clientSecret: process.env.CLIENT_SECRET!,
-    }),
     CredentialProvider({
       name: "crdedntials",
       credentials: {

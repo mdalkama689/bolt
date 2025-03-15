@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { act, useContext, useEffect, useState } from "react";
 import {
   SandpackProvider,
   SandpackFileExplorer,
@@ -15,26 +15,23 @@ import axios from "axios";
 import { CODE_GENERATE_PROMPT } from "@/utils/prompt";
 import { Button } from "./ui/button";
 import { FileUp, Rocket } from "lucide-react";
-import { ActionContext } from "@/context/ActionContext";
 import SandPackPreviewClient from "./SandPackPreviewClient";
 
+interface iActionType {
+  actionType: "deploy" | "export";
+}
 function CodeView({ roomId }: { roomId: string }) {
   const [isActive, setIsActive] = useState<string>("code");
   const [files, setFiles] = useState(staterCode);
   const [dependencies, setDependencies] = useState({});
-  const [isCodeGenerating, setIsCodeGenerating] = useState<boolean>(false);
+  const [actionType, setActionType] = useState<string>("");
 
   const messageContext = useContext(MessageContext);
   if (!messageContext) {
     return toast.error("Error: messageContext is missing!");
   }
-  const actionContext = useContext(ActionContext);
-  if (!actionContext) {
-    return toast.error("Error: actionContext is missing!");
-  }
 
   const { messages } = messageContext;
-const {action, setAction} = actionContext 
 
   useEffect(() => {
     const lastMessage = messages && messages[messages.length - 1];
@@ -70,6 +67,7 @@ const {action, setAction} = actionContext
   const getCodeResponse = async () => {
     const codeGenerationToastId = toast.loading("Generating code...");
     try {
+      setIsActive("code");
       const PROMPT = JSON.stringify(messages) + " " + CODE_GENERATE_PROMPT;
       const response = await axios.post("/api/ai-code-response", {
         prompt: PROMPT,
@@ -94,27 +92,31 @@ const {action, setAction} = actionContext
     }
   };
 
-  const handleAction = async (actionType) => {
-    setAction({
-      type: actionType 
-    })
-  }
+  useEffect(() => {
+    setIsActive("preview");
+  }, [actionType]);
+
+  const handleAction = (type: string) => {
+    setActionType(type);
+  };
 
   return (
     <div className="mt-6 w-full">
-       <div className="absolute right-3 top-2 flex gap-4 text-white">
-            <Button
-            onClick={() => handleAction('export')}
-            className="bg-gray-700 hover:bg-gray-600 text-white transition duration-300 cursor-pointer">
-              <FileUp className="w-5 h-5 mr-2 text-white" /> Export
-            </Button>
-            <Button
-                onClick={() => handleAction('deploy')}
-            className="bg-blue-500 hover:bg-blue-400 text-white transition duration-300 cursor-pointer">
-              <Rocket className="w-5 h-5 mr-2 text-white" /> Deploy
-            </Button>
-          </div>
-      <div className="flex items-center  px-1 py-2 justify-start gap-2 border bg-zinc-800  rounded-lg w-fit">
+      <div className="absolute right-3 top-2 flex gap-4 text-white">
+        <Button
+          onClick={() => handleAction("export")}
+          className="bg-gray-700 hover:bg-gray-600 text-white transition duration-300 cursor-pointer"
+        >
+          <FileUp className="w-5 h-5 mr-2 text-white" /> Export
+        </Button>
+        <Button
+          onClick={() => handleAction("deploy")}
+          className="bg-blue-500 hover:bg-blue-400 text-white transition duration-300 cursor-pointer"
+        >
+          <Rocket className="w-5 h-5 mr-2 text-white" /> Deploy
+        </Button>
+      </div>
+      <div className="flex items-center  px-1 py-2 mb-3 justify-start gap-2 border bg-zinc-800  rounded-lg w-fit">
         <p
           onClick={() => setIsActive("code")}
           className={`px-2 py-0.5 rounded-md cursor-pointer transition ${
@@ -157,11 +159,10 @@ const {action, setAction} = actionContext
             </>
           )}
           {isActive === "preview" && (
-            <SandPackPreviewClient />
+            <SandPackPreviewClient actionType={actionType} />
           )}
         </SandpackLayout>
       </SandpackProvider>
-     
     </div>
   );
 }

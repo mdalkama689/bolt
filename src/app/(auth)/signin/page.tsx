@@ -12,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader, LockKeyhole, Mail, User } from "lucide-react";
-import { FaGoogle } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -55,18 +54,12 @@ function Signin() {
     }
   };
 
-  const handleGoogleSignin = () => {
-    signIn("google", { callbackUrl: "/" });
-  };
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2 text-center">
           <CardTitle className="text-3xl font-bold">Welcome back</CardTitle>
-          <CardDescription>
-            Enter your details below or sign in with Google.
-          </CardDescription>
+          <CardDescription>Enter your details below</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
@@ -107,13 +100,7 @@ function Signin() {
             )}
           </CardContent>
         </form>
-        <Button
-          onClick={handleGoogleSignin}
-          className="w-[90%]  m-auto flex items-center gap-2 cursor-pointer border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm"
-        >
-          <FaGoogle className="h-5 w-5 " />
-          Sign in with Google
-        </Button>
+
         <div className="flex justify-center gap-1 items-center">
           <div className="text-gray-700 text-sm">Don’t have an account?</div>
           <Link

@@ -12,7 +12,6 @@ const htmlFileValue = `<!DOCTYPE html>
   </body>
 </html>`;
 
-
 const tailwindConfigFileName = "/tailwind.config.js";
 const tailwindConfigValue = `/** @type {import('tailwindcss').Config} */
 export default {
@@ -54,12 +53,11 @@ const indexCssFile = {
 };
 
 const staterCode = {
-...tailwindConfigFile,
-...indexCssFile,
-...htmlFile,
-...postCssFile
+  ...tailwindConfigFile,
+  ...indexCssFile,
+  ...htmlFile,
+  ...postCssFile,
 };
 
-
 const tailwindCDN = "https://cdn.tailwindcss.com";
-export { staterCode,tailwindCDN };
+export { staterCode, tailwindCDN };

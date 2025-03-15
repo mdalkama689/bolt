@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import authOptions from "../../auth/[...nextauth]/option";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest, {params}: {params: {roomId: string}}): Promise<NextResponse> {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { roomId: string } }
+): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -13,8 +16,8 @@ export async function GET(req: NextRequest, {params}: {params: {roomId: string}}
       });
     }
 
-    const {roomId} = await params
-    console.log('get all title', roomId)
+    const { roomId } = await params;
+    console.log("get all title", roomId);
     if (!roomId) {
       return NextResponse.json({
         success: false,
@@ -23,17 +26,18 @@ export async function GET(req: NextRequest, {params}: {params: {roomId: string}}
     }
 
     const roomData = await prisma.chat.findMany({
-        where: {userId: Number(session.user.id)},
-        select: {
-            title: true,
-            roomId: true
-        }
-    })
+      where: { userId: Number(session.user.id) },
+      select: {
+        title: true,
+        roomId: true,
+      },
+      orderBy: {creationTime: "desc"}
+    });
 
     return NextResponse.json({
       success: true,
       message: "success!",
-      roomData
+      roomData,
     });
   } catch (error: any) {
     return NextResponse.json({

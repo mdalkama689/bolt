@@ -106,7 +106,7 @@ function ChatView({ roomId }: { roomId: string }) {
   const firstChar = data?.user.email?.charAt(0).toUpperCase();
 
   return (
-    <div className="h-screen flex flex-col bg-black text-white w-full pt-10">
+    <div className="h-screen flex flex-col bg-black text-white w-full pt-10 ">
       {/* Chat Messages - Takes Remaining Space */}
       <div className="flex-1 flex flex-col overflow-y-auto mt-5 px-4 pb-2 gap-3 ">
         {isPreviousChatLoading && (

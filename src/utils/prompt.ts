@@ -5,7 +5,7 @@ const CHAT_GENERATE_PROMPT = dedent`You are a AI Assistant and experience in Rea
 Tell user what your are building
 Tell what components are creating with this example /components/Footer.jsx etc
 Response keep simple, short and impactful,
-Skip code examples and commentary`
+Skip code examples and commentary`;
 
 const CODE_GENERATE_PROMPT = dedent`
 For every design request, create **visually stunning and production-ready** React components.  
@@ -37,8 +37,4 @@ Ensure the designs are **unique and not cookie-cutter** while maintaining usabil
 
 Ensure all components follow best practices and are structured for **scalability and maintainability**.`;
 
-
-export {
-  CHAT_GENERATE_PROMPT,
-  CODE_GENERATE_PROMPT
-}
+export { CHAT_GENERATE_PROMPT, CODE_GENERATE_PROMPT };

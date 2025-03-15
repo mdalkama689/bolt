@@ -15,10 +15,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    interface IReqJson{
-      prompt: string,
-       roomId: string,
-        combinedPrompt: string
+    interface IReqJson {
+      prompt: string;
+      roomId: string;
+      combinedPrompt: string;
     }
     const { prompt, roomId, combinedPrompt }: IReqJson = await req.json();
 
@@ -30,72 +30,68 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const room = await prisma.chat.findFirst({
-        where: {
-            roomId
-        }
-    })
- 
-if(!room){
-    return NextResponse.json({
+      where: {
+        roomId,
+      },
+    });
+
+    if (!room) {
+      return NextResponse.json({
         success: false,
-        message: "Room not found!"
-    })
-}
-
-interface IMesssage {
-  role: string,
-  content: string 
-}
-
-const userMessage: IMesssage = {
-    role: "user",
-    content: prompt 
-}
-
-if(!room.title){
-  await prisma.chat.update({
-    where: {id: room.id},
-    data: {
-      title: prompt
+        message: "Room not found!",
+      });
     }
-  })
-}
- 
 
-await prisma.chat.update({
-  where: {id: room.id},
-  data: {
-    message: {
-      push: JSON.stringify(userMessage)
+    interface IMesssage {
+      role: string;
+      content: string;
     }
-  }
-})
 
+    const userMessage: IMesssage = {
+      role: "user",
+      content: prompt,
+    };
 
-const response = await chatSession.sendMessage(combinedPrompt);
-const result = response.response.text()
-
-const aiMessage: IMesssage = {
-    role: 'ai',
-    content: result.replaceAll("*", " ").replaceAll("`", " ")
-}
-
-
-await prisma.chat.update({
-  where: {id: room.id},
-  data: {
-    message: {
-      push: JSON.stringify(aiMessage)
+    if (!room.title) {
+      await prisma.chat.update({
+        where: { id: room.id },
+        data: {
+          title: prompt,
+        },
+      });
     }
-  }
-})
 
- 
+    await prisma.chat.update({
+      where: { id: room.id },
+      data: {
+        message: {
+          push: JSON.stringify(userMessage),
+        },
+      },
+    });
+
+    const response = await chatSession.sendMessage(combinedPrompt);
+    const result = response.response.text();
+
+    const aiMessage: IMesssage = {
+      role: "ai",
+      content: result.replaceAll("*", " ").replaceAll("`", " "),
+    };
+
+    await prisma.chat.update({
+      where: { id: room.id },
+      data: {
+        message: {
+          push: JSON.stringify(aiMessage),
+        },
+      },
+    });
+
     return NextResponse.json({
       success: true,
       message: "Get chat response successfully from gemini!",
-    result,
-    room
+      result,
+      room,
     });
   } catch (error: any) {
     return NextResponse.json({

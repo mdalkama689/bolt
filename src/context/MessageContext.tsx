@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { useState } from "react";
 import { createContext } from "react";
 
@@ -6,7 +6,6 @@ interface IMessage {
   role: string;
   content: string;
 }
-
 
 interface IMessageContext {
   messages: IMessage[];

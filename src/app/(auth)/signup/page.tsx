@@ -20,10 +20,8 @@ import signUpSchema from "@/types/signup-schema";
 import { toast } from "sonner";
 import axios from "axios";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ApiResponse } from "@/utils/types";
 
 function Signup() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -40,7 +38,7 @@ function Signup() {
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     try {
       setIsLoading(true);
-      const response = await axios.post<ApiResponse>("/api/signup", data);
+      const response = await axios.post("/api/signup", data);
       if (response.data.success) {
         router.push("/signin");
       }
@@ -68,9 +66,6 @@ function Signup() {
     }
   };
 
-  const handleGoogleSignin = () => {
-    signIn("google", { callbackUrl: "/" });
-  };
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -78,9 +73,7 @@ function Signup() {
           <CardTitle className="text-3xl font-bold">
             Create an Account
           </CardTitle>
-          <CardDescription>
-            Enter your details below or sign up with Google.
-          </CardDescription>
+          <CardDescription></CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit, onErrror)}>
           <CardContent className="space-y-6">
@@ -136,13 +129,7 @@ function Signup() {
             )}
           </CardContent>
         </form>
-        <Button
-          onClick={handleGoogleSignin}
-          className="w-[90%]  m-auto flex items-center gap-2 cursor-pointer border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm"
-        >
-          <FaGoogle className="h-5 w-5 " />
-          Sign in with Google
-        </Button>
+
         <div className="flex justify-center gap-1 items-center ">
           <div className="text-gray-700 text-sm">Already have an account?</div>
 

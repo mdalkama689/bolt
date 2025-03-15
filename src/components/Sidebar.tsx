@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { LogOut, Mail, Menu, MessageCircle } from "lucide-react";
+import { LogOut, Menu, MessageCircle, Twitter } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import axios from "axios";
 import { toast } from "sonner";
@@ -71,17 +71,9 @@ export function Sidebar({ roomId }: { roomId: string }) {
     }
   };
 
-  // todos
-  // handle create signout
-  // handle contanct us
-  // handle deployement
-  // handle deployemt of the project 
-  // add middleware
-  // add deployemtn and export 
-  
-  const handleSignout = async () => {
-  signOut()
-  }
+  const handleSignout = () => {
+    signOut();
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -134,10 +126,19 @@ export function Sidebar({ roomId }: { roomId: string }) {
             </div>
 
             <div className="absolute bottom-0 flex flex-col gap-2 p-4">
-              <Button className="flex items-center gap-2 bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-600">
-                <Mail size={18} /> Contact Us
-              </Button>
-              <Button onClick={handleSignout} className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-500 border border-red-500">
+              <Link
+                href="https://twitter.com/messages/compose?recipient_id=https://x.com/alkama_07"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button className="flex items-center gap-2 bg-gray-800 cursor-pointer text-gray-200 hover:bg-gray-700 border border-gray-600">
+                  <Twitter size={18} /> Contact Us
+                </Button>
+              </Link>
+              <Button
+                onClick={handleSignout}
+                className="flex cursor-pointer items-center gap-2 bg-red-600 text-white hover:bg-red-500 border border-red-500"
+              >
                 <LogOut size={18} /> Logout
               </Button>
             </div>
