@@ -23,11 +23,9 @@ function CodeView({ roomId }: { roomId: string }) {
   const [actionType, setActionType] = useState<string>("");
 
   const messageContext = useContext(MessageContext);
-  if (!messageContext) {
-    return toast.error("Error: messageContext is missing!");
-  }
 
-  const { messages } = messageContext;
+
+  const  messages  = messageContext?.messages ?? [];
 
   useEffect(() => {
     const lastMessage = messages && messages[messages.length - 1];
@@ -91,6 +89,11 @@ function CodeView({ roomId }: { roomId: string }) {
   useEffect(() => {
     setIsActive("preview");
   }, [actionType]);
+
+  if (!messageContext) {
+   toast.error("Error: messageContext is missing!");
+   return null
+  }
 
   const handleAction = (type: string) => {
     setActionType(type);
