@@ -1,115 +1,146 @@
 "use client";
-import { ApiResponse, Message } from "@/utils/types";
+
+import { CHAT_GENERATE_PROMPT } from "@/utils/prompt";
 import axios from "axios";
-import { useContext, useEffect, useRef, useState } from "react";
-import {
-  Loader2,
-  Loader2Icon,
-  LoaderCircleIcon,
-  SendHorizonal,
-} from "lucide-react";
-import CHAT_PROMPT from "@/utils/prompt";
-import { toast } from "sonner";
-import { MessageContext } from "@/context/MessageContext";
+import { Loader2, SendHorizonal } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useContext, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "./button";
+import { MessageContext } from "@/context/MessageContext";
 
 function ChatView({ roomId }: { roomId: string }) {
   const router = useRouter();
-  const messageContext = useContext(MessageContext);
+  const [isGeneratingResponse, setIsGeneratingResponse] =
+    useState<boolean>(false);
+  const [prompt, setPrompt] = useState<string>("");
+  const messageBottomRef = useRef<HTMLDivElement | null>(null);
+  const [isPreviousChatLoading, setIsPreviousChatLoading] =
+    useState<boolean>(true);
 
+  const messageContext = useContext(MessageContext);
   if (!messageContext) {
-    toast.error("Something went wrong!");
-    router.push("/");
-    return;
+   return toast.error("Error: messageContext is missing!");
   }
+
   const { messages, setMessages } = messageContext;
 
-  const [input, setInput] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const messageEndRef = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
-    roomId && getAllChats();
+    getRoomData();
   }, []);
 
   useEffect(() => {
-    const lastMessage = messages.length > 0 && messages[messages.length - 1];
-    if (lastMessage && lastMessage.role === "user") {
-      getAiResponse();
-      messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
+    messageBottomRef?.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendInput = () => {
-    const msg = {
-      role: "user",
-      content: input,
-    };
-    setMessages((prev) => [...prev, msg]);
-  };
-
-  const getAllChats = async () => {
+  const getRoomData = async () => {
     try {
-      const response = await axios.post<ApiResponse<Message[]>>(
-        `/api/chat/${roomId}`
-      );
-      console.log(response.data.data);
-      setMessages(response.data.data || []);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+      setIsPreviousChatLoading(true);
+      const response = await axios.post("/api/room", { roomId });
 
-  const getAiResponse = async () => {
-    try {
-      setIsLoading(true);
-      const PROMPT = JSON.stringify(messages) + CHAT_PROMPT;
-      const response = await axios.post<ApiResponse<string>>(
-        "/api/ai-response",
-        { prompt: PROMPT }
-      );
-      const msg = {
-        role: "ai",
-        content: response.data.data || "",
-      };
-
-      setMessages((prev) => [...prev, msg]);
       if (response.data.success) {
-        setInput("");
+        setMessages(response.data.room.message);
+      } else {
+        toast.info(response.data.message);
+        router.push("/");
+        return;
       }
     } catch (error: any) {
-      console.log(error);
-      const errorMessage =
-        error.response.data.message || "Error during fetching response";
-      toast.error(errorMessage);
+      const errroMessage =
+        error?.response?.data?.message || "Something went wrong";
+
+      toast.error(errroMessage);
     } finally {
-      setIsLoading(false);
+      setIsPreviousChatLoading(false);
     }
   };
 
-  return (
-    <div className="h-screen flex flex-col bg-black text-white">
-      <h1 className="text-2xl font-semibold p-4 border-b border-gray-700">
-        Your Chat
-      </h1>
+  const handleSendMessage = async () => {
+    try {
+      if (!prompt.trim()) {
+        return toast.error("Please give the prompt!");
+      }
+      setIsGeneratingResponse(true);
+      setPrompt("");
+      const usermMsg = {
+        role: "user",
+        content: prompt,
+      };
 
-      <div className="flex flex-col overflow-y-auto mt-5 px-4 pb-2 gap-3 h-[70vh]">
-        {messages.length > 0 &&
-          messages.map((message, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-start gap-4 bg-zinc-700 px-4 py-3 rounded-lg"
-            >
-              {message.role === "user" && (
-                <span className="bg-black rounded-full h-9 w-9 flex items-center justify-center">
-                  A
-                </span>
-              )}
-              <p>{message.content}</p>
+      setMessages((prev) => [...prev, usermMsg]);
+
+      const combinedMessage = [...messages, usermMsg];
+
+      const combinedPrompt =
+        JSON.stringify(combinedMessage) + " " + CHAT_GENERATE_PROMPT;
+
+      const response = await axios.post("/api/ai-chat-response", {
+        prompt,
+        roomId,
+        combinedPrompt,
+      });
+
+      if (response.data.success) {
+        const aiResponse = response.data.result
+          ?.replaceAll("*", " ")
+          ?.replaceAll("`", " ");
+        const aiMessage = {
+          role: "ai",
+          content: aiResponse,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+      }
+    } catch (error: any) {
+      const errroMessage =
+        error?.response?.data?.message || "Something went wrong";
+
+      toast.error(errroMessage);
+    } finally {
+      setIsGeneratingResponse(false);
+    }
+  };
+
+  const { data } = useSession();
+
+  const firstChar = data?.user.email?.charAt(0).toUpperCase();
+
+  return (
+    <div className="h-screen flex flex-col bg-black text-white w-full pt-10">
+      {/* Chat Messages - Takes Remaining Space */}
+      <div className="flex-1 flex flex-col overflow-y-auto mt-5 px-4 pb-2 gap-3 ">
+        {isPreviousChatLoading && (
+          <div className="flex items-center justify-center h-screen w-full">
+            <Loader2 className="animate-spin" />
+          </div>
+        )}
+
+        {!isPreviousChatLoading &&
+          (messages.length > 0 ? (
+            messages.map((message, index) => {
+              let item =
+                typeof message === "string" ? JSON.parse(message) : message;
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-center justify-start gap-4 bg-zinc-700 px-4 py-3 rounded-lg"
+                >
+                  {item.role === "user" && (
+                    <span className="bg-black rounded-full h-9 w-9 flex items-center justify-center">
+                      {firstChar}
+                    </span>
+                  )}
+                  <p>{item.content}</p>
+                </div>
+              );
+            })
+          ) : (
+            <div className="h-screen  flex items-center justify-center w-full">
+              <p className="text-gray-500">Please start the conversation</p>
             </div>
           ))}
-
-        {isLoading && (
+        {isGeneratingResponse && (
           <div className="flex items-center gap-3 mt-5">
             <Loader2
               className="w-5 h-5 animate-spin text-white"
@@ -119,24 +150,26 @@ function ChatView({ roomId }: { roomId: string }) {
           </div>
         )}
 
-        <div ref={messageEndRef} className="pb-10"></div>
+        <div ref={messageBottomRef}></div>
       </div>
 
-      <div className="absolute w-1/5 bottom-0 left-0 right-0 p-4 bg-black border-t border-gray-700">
+      {/* Input Box - No absolute positioning */}
+      <div className="w-full p-4 bg-black border-t border-gray-700">
         <div className="relative">
           <textarea
             placeholder="How can we help you?"
             className="w-full resize-none px-5 py-4 border border-gray-600 bg-zinc-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={3}
-            onChange={(e) => setInput(e.target.value)}
-            value={input}
+            onChange={(e) => setPrompt(e.target.value)}
+            value={prompt}
           ></textarea>
-          <div
-            className="absolute bottom-4 right-4 cursor-pointer"
-            onClick={sendInput}
+          <Button
+            className="absolute bottom-4 right-4 cursor-pointer bg-transparent hover:bg-transparent"
+            onClick={handleSendMessage}
+            disabled={isGeneratingResponse}
           >
             <SendHorizonal className="text-white" />
-          </div>
+          </Button>
         </div>
       </div>
     </div>

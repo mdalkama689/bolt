@@ -8,64 +8,112 @@ import {
   SandpackCodeEditor,
   SandpackPreview,
 } from "@codesandbox/sandpack-react";
-import {  staterCode, tailwindCDN } from "@/utils/boilerPlateCode";
-import axios from "axios";
-import { ApiResponse } from "@/utils/types";
-import { useRouter } from "next/navigation";
+import { staterCode, tailwindCDN } from "@/utils/boilerPlateCode";
 import { MessageContext } from "@/context/MessageContext";
 import { toast } from "sonner";
+import axios from "axios";
 import { CODE_GENERATE_PROMPT } from "@/utils/prompt";
+import { Button } from "./ui/button";
+import { FileUp, Rocket } from "lucide-react";
+import { ActionContext } from "@/context/ActionContext";
+import SandPackPreviewClient from "./SandPackPreviewClient";
 
-function CodeView() {
-  const router = useRouter()
-  const messageContext = useContext(MessageContext)
-
-  if(!messageContext) {
-    toast.error('Something went wrong!')
-router.push('/')
-return
-  }
- const  {messages}  = messageContext
+function CodeView({ roomId }: { roomId: string }) {
   const [isActive, setIsActive] = useState<string>("code");
-  const [file, setFile] = useState(staterCode);
-const [dependencies, setDependencies] = useState()
+  const [files, setFiles] = useState(staterCode);
+  const [dependencies, setDependencies] = useState({});
+  const [isCodeGenerating, setIsCodeGenerating] = useState<boolean>(false);
+
+  const messageContext = useContext(MessageContext);
+  if (!messageContext) {
+    return toast.error("Error: messageContext is missing!");
+  }
+  const actionContext = useContext(ActionContext);
+  if (!actionContext) {
+    return toast.error("Error: actionContext is missing!");
+  }
+
+  const { messages } = messageContext;
+const {action, setAction} = actionContext 
 
   useEffect(() => {
-    const lastMessage = messages.length > 0 && messages[messages.length - 1];
+    const lastMessage = messages && messages[messages.length - 1];
     if (lastMessage && lastMessage.role === "user") {
-getCode()
+      getCodeResponse();
     }
   }, [messages]);
-;
 
-  const getCode = async () => {
+  useEffect(() => {
+    getRoomData();
+  }, []);
+
+  const getRoomData = async () => {
     try {
-   toast.info('start')
-      const PROMPT = JSON.stringify(messages) + " " + CODE_GENERATE_PROMPT
-   
-      const res = await axios.post<ApiResponse<string>>(
-        "/api/ai-code-response",
-        {
-          prompt: PROMPT
-        }
-      );
+      const response = await axios.post("/api/room", { roomId });
+      if (response.data.success) {
+        const responseFiles = response.data.room.files;
+        const responseDependencies = response.data.room.dependencies;
 
-      if (res.data.success && res.data.data) {
-    const parsedResponse = JSON.parse(res.data.data)
-        const mergedFile = { ...staterCode, ...parsedResponse.files }
-        setFile(mergedFile);
-        console.log(parsedResponse)
-        setDependencies(parsedResponse.dependencies)
-        toast.success('success')
+        const combinedCode = { ...staterCode, ...responseFiles };
+        setFiles(combinedCode);
+        setDependencies(responseDependencies);
+      } else {
+        toast.error(response.data.message);
       }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      console.log("done");
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message || "Something webt wrong!";
+      toast.error(errorMessage);
     }
   };
+
+  const getCodeResponse = async () => {
+    const codeGenerationToastId = toast.loading("Generating code...");
+    try {
+      const PROMPT = JSON.stringify(messages) + " " + CODE_GENERATE_PROMPT;
+      const response = await axios.post("/api/ai-code-response", {
+        prompt: PROMPT,
+        roomId,
+      });
+
+      if (response.data.success) {
+        const parsedResponse = JSON.parse(response.data.result);
+        const combinedCode = { ...staterCode, ...parsedResponse.files };
+        setFiles(combinedCode);
+        setDependencies(parsedResponse.dependencies);
+        toast.success("Code generated successfully!", {
+          id: codeGenerationToastId,
+        });
+      } else {
+        toast.error(response.data.message, { id: codeGenerationToastId });
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message || "Something went wrong!";
+      toast.error(errorMessage, { id: codeGenerationToastId });
+    }
+  };
+
+  const handleAction = async (actionType) => {
+    setAction({
+      type: actionType 
+    })
+  }
+
   return (
-    <div className="mt-6 ">
+    <div className="mt-6 w-full">
+       <div className="absolute right-3 top-2 flex gap-4 text-white">
+            <Button
+            onClick={() => handleAction('export')}
+            className="bg-gray-700 hover:bg-gray-600 text-white transition duration-300 cursor-pointer">
+              <FileUp className="w-5 h-5 mr-2 text-white" /> Export
+            </Button>
+            <Button
+                onClick={() => handleAction('deploy')}
+            className="bg-blue-500 hover:bg-blue-400 text-white transition duration-300 cursor-pointer">
+              <Rocket className="w-5 h-5 mr-2 text-white" /> Deploy
+            </Button>
+          </div>
       <div className="flex items-center  px-1 py-2 justify-start gap-2 border bg-zinc-800  rounded-lg w-fit">
         <p
           onClick={() => setIsActive("code")}
@@ -91,7 +139,7 @@ getCode()
       <SandpackProvider
         template="react"
         theme={"dark"}
-        files={file}
+        files={files}
         customSetup={{
           dependencies: {
             ...dependencies,
@@ -109,10 +157,11 @@ getCode()
             </>
           )}
           {isActive === "preview" && (
-            <SandpackPreview showNavigator={true} style={{ height: "80vh" }} />
+            <SandPackPreviewClient />
           )}
         </SandpackLayout>
       </SandpackProvider>
+     
     </div>
   );
 }

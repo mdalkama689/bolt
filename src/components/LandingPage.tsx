@@ -1,93 +1,86 @@
 "use client";
-import React, { useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
-import { Send, SendHorizonal, SendHorizonalIcon } from "lucide-react";
+import { MessageSquarePlus, Sparkles } from "lucide-react";
+// import { useRouter } from "next/navigation";
 import axios from "axios";
+import { v4 } from "uuid";
 import { toast } from "sonner";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiResponse, Message } from "@/utils/types";
 
 function LandingPage() {
   const { status, data } = useSession();
-  const firstChar = data?.user.email?.charAt(0).toUpperCase();
+  const firstChar = data?.user?.email?.charAt(0).toUpperCase();
   const router = useRouter();
-  const [prompt, setPrompt] = useState<string>("");
 
-  interface IRoomId {
-    roomId: string;
-  }
-  const handlePrompt = async () => {
+  const [isloading, setIsLoading] = useState<boolean>(false);
+
+  const handleCreateRoom = async () => {
+    setIsLoading(true);
+    const loadingToast = toast.loading("New room is creating...");
     try {
-      if (!prompt.trim()) {
-        return toast.error("Please provide the prompt!");
-      }
-      const response = await axios.post<ApiResponse<IRoomId>>(
-        "/api/create-room",
-        { prompt }
-      );
-
-      const roomId = response.data.data?.roomId;
+      const roomId = v4();
+      const response = await axios.post("/api/create-room", { roomId });
 
       if (response.data.success) {
-        router.push(`/room/${roomId}`);
+        toast.success(response.data.message, { id: loadingToast });
+       router.push( `/room/${roomId}`)
       }
     } catch (error: any) {
       const errorMessage =
-        error.response.data.message || "Error while creating the room!";
-      toast.error(errorMessage);
+        error?.response?.data?.message || "Something went wrong!";
+
+      toast.error(errorMessage, { id: loadingToast });
+    } finally {
+      setIsLoading(false);
     }
   };
   return (
-    <div>
-      {/* navbar  */}
-      <div className="flex items-center justify-between px-2 py-2">
-        <h1 className="font-bold text-4xl ">Bolt </h1>
+    <div className="min-h-screen bg-black text-white">
+      {/* Navbar */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-800">
+        <h1 className="font-bold text-4xl bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
+          Bolt
+        </h1>
         {status === "unauthenticated" ? (
-          <Button variant="default">Signin </Button>
+          <Button variant="default" className="bg-blue-600 hover:bg-blue-700">
+            Sign In
+          </Button>
         ) : (
-          <p className="bg-white h-9 w-9 text-black text-xl cursor-pointer font-semibold flex items-center justify-center rounded-full">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-10 w-10 text-white text-xl cursor-pointer font-semibold flex items-center justify-center rounded-full">
             {firstChar}
-          </p>
+          </div>
         )}
       </div>
 
-      {/* build main */}
+      {/* Main content */}
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-76px)] px-4 text-center">
+        <div className="max-w-3xl">
+          <h1 className="font-bold text-5xl md:text-6xl mb-6 bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
+            Build Apps with AI
+          </h1>
+          <p className="text-xl text-gray-400 mb-10 max-w-xl mx-auto">
+            Prompt, run, edit and deploy full-stack web applications with the
+            power of AI
+          </p>
 
-      <div className="flex items-center justify-center h-screen w-[100%] flex-col">
-        <h1 className="font-bold text-4xl">What do you want to build?</h1>
-        <p className="mt-2 font-normal text-gray-400 ">
-          Prompt, run, edit and deploy the full stack web app
-        </p>
-        {/* input form  */}
-        <div className=" mt-6 relative">
-          <textarea
-            placeholder="How can we help you?"
-            className="resize-none px-5 py-4 border border-gray-200 rounded "
-            cols={70}
-            rows={5}
-            onChange={(e) => setPrompt(e.target.value)}
-            value={prompt}
-          ></textarea>
-          <div
-            className="absolute bottom-3 right-3 cursor-pointer"
-            onClick={handlePrompt}
+          <Button
+            size="lg"
+            className="bg-gradient-to-r cursor-pointer from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 text-lg rounded-full transition-all duration-300 shadow-lg hover:shadow-blue-500/20"
+            disabled={isloading}
+            onClick={handleCreateRoom}
           >
-            <SendHorizonal />
-          </div>
-        </div>
-        {/* suggestion */}
+            <MessageSquarePlus className="mr-2 h-5 w-5" />
+            Start New Chat
+          </Button>
 
-        <div className="flex items-center gap-4 mt-4">
-          <p className="border border-gray-300 text-center w-fit px-2 py-1 rounded-full hover:bg-zinc-900 transition duration-300 cursor-pointer">
-            Built a to do app
-          </p>
-          <p className="border border-gray-300 text-center w-fit px-2 py-1 rounded-full hover:bg-zinc-900 transition duration-300 cursor-pointer">
-            Built a to do app using db
-          </p>
-          <p className="border border-gray-300 text-center w-fit px-2 py-1 rounded-full hover:bg-zinc-900 transition duration-300 cursor-pointer">
-            Built a to do with login{" "}
-          </p>
+          <div className="mt-16 flex items-center justify-center">
+            <div className="flex items-center gap-2 text-gray-500 text-sm">
+              <Sparkles className="h-4 w-4" />
+              <span>Powered by advanced AI to build your next project</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

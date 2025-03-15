@@ -17,7 +17,11 @@ model User {
 
 model Chat {
   id      Int  @id @default(autoincrement())
-  message Json
+  message String[] @default([])
   userId  Int
   user    User @relation(fields: [userId], references: [id])
+  roomId String
+  title String @default("")
+  files Json @default("{}")
+  dependencies Json  @default("{}")
 }

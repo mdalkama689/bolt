@@ -1,30 +1,68 @@
-import { codeChatSession } from "@/utils/ai-chat";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import authOptions from "../auth/[...nextauth]/option";
+import { codeChatSession } from "@/utils/gemini";
+import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  try {
+export async function POST(req: NextRequest) {
+    try {
+        
+        const session = await getServerSession(authOptions)
+        if(!session){
+            return NextResponse.json({
+                success: false,
+                message: 'unauthenticated, plaese login to response!'
+            })
+        }
 
-    const {prompt }: {prompt: string} = await req.json()
-    console.log('prompt : ', prompt)
-    const response = await codeChatSession.sendMessage(prompt)
-    const result = response.response.text() 
-    console.log(result)
-    return NextResponse.json(
-      {
-        success: true,
-        message: "succeess",
-        data: result 
-      },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    return NextResponse.json(
-      {
+const {prompt, roomId}: {prompt: string, roomId: string} = await req.json()
+if(!prompt.trim() || !roomId){
+    return NextResponse.json({
         success: false,
-        message:
-          error.message || "Error during getting response from the gemini",
-      },
-      { status: 400 }
-    );
-  }
+        message: "Please provide the prompt and roomId !" 
+    })
+}
+
+const room = await prisma.chat.findFirst({
+    where: {roomId}
+})
+
+if(!room){
+    return NextResponse.json({
+        success: false,
+        message: "Room not found! !" 
+    })
+
+}
+
+
+const response = await codeChatSession.sendMessage(prompt)
+const result = response.response.text()
+
+const paresedResult = JSON.parse(result)
+console.log('result : ', paresedResult.files)
+
+// add current code in db 
+await prisma.chat.update({
+    where: {
+        id: room.id
+    },
+    data: {
+        files: paresedResult.files,
+        dependencies: paresedResult.dependencies
+    }
+})
+
+return NextResponse.json({
+    success: true,
+    message: "get code response successfully!",
+    result, 
+    room
+})
+    } catch (error: any) {
+        return NextResponse.json({
+            success: false,
+            message: error.message || "Error while getting response from gemini for code"
+        })
+    }
 }

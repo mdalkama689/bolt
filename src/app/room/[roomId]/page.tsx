@@ -1,21 +1,33 @@
 import CodeView from "@/components/CodeView";
+import { Sidebar } from "@/components/Sidebar";
 import ChatView from "@/components/ui/ChatView";
+import { ActionProvider } from "@/context/ActionContext";
 import { MessageContextProvider } from "@/context/MessageContext";
-import React from "react";
+import { toast } from "sonner";
 
 async function Room({ params }: { params: { roomId: string } }) {
   const param = await params;
   const roomId = param.roomId;
+
+  if (!roomId) {
+    return toast.error("Please provide room id!");
+  }
+
   return (
     <MessageContextProvider>
-      <div className="flex justify-start gap-12">
-        <div className="w-1/5">
-          <ChatView roomId={roomId} />
+      <ActionProvider>
+        <div className="flex justify-start gap-4 w-full h-screen">
+          <div className="absolute top-3 left-2">
+            <Sidebar roomId={roomId} />
+          </div>
+          <div className="w-[25%] ">
+            <ChatView roomId={roomId} />
+          </div>
+          <div className="w-[70%] ">
+            <CodeView roomId={roomId} />
+          </div>
         </div>
-        <div className="w-4/5">
-          <CodeView />
-        </div>
-      </div>
+      </ActionProvider>
     </MessageContextProvider>
   );
 }

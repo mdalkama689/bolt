@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import authOptions from "../auth/[...nextauth]/option";
+import authOptions from "../../auth/[...nextauth]/option";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest, {params}: {params: {roomId: string}}): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -13,7 +13,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    const { roomId }: { roomId: string } = await req.json();
+    const {roomId} = await params
+    console.log('get all title', roomId)
     if (!roomId) {
       return NextResponse.json({
         success: false,
@@ -21,16 +22,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    await prisma.chat.create({
-      data: {
-        roomId,
-        userId: Number(session.user.id),
-      },
-    });
+    const roomData = await prisma.chat.findMany({
+        where: {userId: Number(session.user.id)},
+        select: {
+            title: true,
+            roomId: true
+        }
+    })
 
     return NextResponse.json({
       success: true,
-      message: "Room created successfully!",
+      message: "success!",
+      roomData
     });
   } catch (error: any) {
     return NextResponse.json({

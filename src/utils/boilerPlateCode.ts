@@ -1,5 +1,3 @@
-import dedent from "dedent";
-
 const htmlFileName = "/public/index.html";
 const htmlFileValue = `<!DOCTYPE html>
 <html lang="en" class="dark">
