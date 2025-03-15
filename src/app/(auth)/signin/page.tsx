@@ -46,7 +46,7 @@ function Signin() {
       }
     } catch (error: unknown) {
       console.log(error);
-      const errorMessage = "Somthing went wrong during signin!";
+      const errorMessage =  error?.response?.data?.message || "Somthing went wrong during signin!";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

@@ -5,14 +5,12 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader, LockKeyhole, Mail, User } from "lucide-react";
-import { FaGoogle } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -42,10 +40,10 @@ function Signup() {
       if (response.data.success) {
         router.push("/signin");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log(error);
       const errorMessage =
-        error.response.data.message || "Somthing went wrong during signup!";
+        error?.response?.data?.message || "Somthing went wrong during signup!";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
