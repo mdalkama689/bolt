@@ -1,7 +1,6 @@
 import {
   SandpackPreview,
   SandpackPreviewRef,
-  useSandpack,
 } from "@codesandbox/sandpack-react";
 import React, { useEffect, useRef } from "react";
 import { toast } from "sonner";

@@ -1,12 +1,11 @@
 "use client";
 
-import React, { act, useContext, useEffect, useState } from "react";
+import React, {  useContext, useEffect, useState } from "react";
 import {
   SandpackProvider,
   SandpackFileExplorer,
   SandpackLayout,
   SandpackCodeEditor,
-  SandpackPreview,
 } from "@codesandbox/sandpack-react";
 import { staterCode, tailwindCDN } from "@/utils/boilerPlateCode";
 import { MessageContext } from "@/context/MessageContext";
@@ -17,9 +16,6 @@ import { Button } from "./ui/button";
 import { FileUp, Rocket } from "lucide-react";
 import SandPackPreviewClient from "./SandPackPreviewClient";
 
-interface iActionType {
-  actionType: "deploy" | "export";
-}
 function CodeView({ roomId }: { roomId: string }) {
   const [isActive, setIsActive] = useState<string>("code");
   const [files, setFiles] = useState(staterCode);

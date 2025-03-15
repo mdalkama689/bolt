@@ -118,7 +118,7 @@ function ChatView({ roomId }: { roomId: string }) {
         {!isPreviousChatLoading &&
           (messages.length > 0 ? (
             messages.map((message, index) => {
-              let item =
+            const  item =
                 typeof message === "string" ? JSON.parse(message) : message;
 
               return (
