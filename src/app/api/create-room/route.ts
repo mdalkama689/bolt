@@ -32,10 +32,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       success: true,
       message: "Room created successfully!",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({
       success: false,
-      message: error.message || "Something went wrong!",
+      message: error?.message || "Something went wrong!",
     });
   }
 }

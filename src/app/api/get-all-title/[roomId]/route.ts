@@ -39,10 +39,10 @@ export async function GET(
       message: "success!",
       roomData,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({
       success: false,
-      message: error.message || "Something went wrong!",
+      message: error?.message || "Something went wrong!",
     });
   }
 }

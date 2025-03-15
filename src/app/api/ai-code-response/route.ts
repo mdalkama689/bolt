@@ -56,11 +56,11 @@ export async function POST(req: NextRequest) {
       result,
       room,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({
       success: false,
       message:
-        error.message || "Error while getting response from gemini for code",
+        error?.message || "Error while getting response from gemini for code",
     });
   }
 }

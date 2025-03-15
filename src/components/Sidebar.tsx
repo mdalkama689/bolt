@@ -42,7 +42,7 @@ export function Sidebar({ roomId }: { roomId: string }) {
         toast.success(response.data.message, { id: loadingToast });
         router.push(`/room/${roomId}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
         error?.response?.data?.message || "Something went wrong!";
 
@@ -64,7 +64,7 @@ export function Sidebar({ roomId }: { roomId: string }) {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
         error?.response?.data?.message || "Something went wrong!";
       toast.error(errorMessage);

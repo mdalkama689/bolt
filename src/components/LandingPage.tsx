@@ -27,7 +27,7 @@ function LandingPage() {
         toast.success(response.data.message, { id: loadingToast });
         router.push(`/room/${roomId}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
         error?.response?.data?.message || "Something went wrong!";
 

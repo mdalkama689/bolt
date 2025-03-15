@@ -15,7 +15,7 @@ const authOptions: NextAuthOptions = {
           placeholder: "*******",
         },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.password || !credentials?.email) {
           throw new Error("Please provide email and password both");
         }

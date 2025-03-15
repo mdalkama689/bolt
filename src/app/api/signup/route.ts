@@ -52,11 +52,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       {
         success: false,
-        message: error.message || "Somthing went wrong during signup!",
+        message: error?.message || "Somthing went wrong during signup!",
       },
       { status: 400 }
     );

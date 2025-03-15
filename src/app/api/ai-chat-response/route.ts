@@ -93,10 +93,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       result,
       room,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({
       success: false,
-      message: error.message || "Error while fetching response from gemini!",
+      message: error?.message || "Error while fetching response from gemini!",
     });
   }
 }

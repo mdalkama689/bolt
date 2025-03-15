@@ -31,7 +31,7 @@ function SandPackPreviewClient({ actionType }: { actionType: string }) {
           }
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = error?.message || "Somthing went wrong!";
       toast.error(errorMessage);
     }

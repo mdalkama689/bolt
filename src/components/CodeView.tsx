@@ -57,7 +57,7 @@ function CodeView({ roomId }: { roomId: string }) {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
         error?.response?.data?.message || "Something webt wrong!";
       toast.error(errorMessage);
@@ -85,7 +85,7 @@ function CodeView({ roomId }: { roomId: string }) {
       } else {
         toast.error(response.data.message, { id: codeGenerationToastId });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
         error?.response?.data?.message || "Something went wrong!";
       toast.error(errorMessage, { id: codeGenerationToastId });

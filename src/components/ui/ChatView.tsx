@@ -46,7 +46,7 @@ function ChatView({ roomId }: { roomId: string }) {
         router.push("/");
         return;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errroMessage =
         error?.response?.data?.message || "Something went wrong";
 
@@ -91,7 +91,7 @@ function ChatView({ roomId }: { roomId: string }) {
         };
         setMessages((prev) => [...prev, aiMessage]);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errroMessage =
         error?.response?.data?.message || "Something went wrong";
 
