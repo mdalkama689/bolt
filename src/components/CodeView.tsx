@@ -28,8 +28,8 @@ function CodeView({ roomId }: { roomId: string }) {
   const  messages  = messageContext?.messages ?? [];
 
   useEffect(() => {
-    const lastMessage = messages && messages[messages.length - 1];
-    if (lastMessage && lastMessage.role === "user") {
+    const lastMessage =  messages?.[messages.length - 1];
+    if (lastMessage?.role === "user") {
       getCodeResponse();
     }
   }, [messages]);
