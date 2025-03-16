@@ -2,16 +2,14 @@ import {
   SandpackPreview,
   SandpackPreviewRef,
 } from "@codesandbox/sandpack-react";
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 function SandPackPreviewClient({ actionType }: { actionType: string }) {
-  useEffect(() => {
-    handleSandboxAction();
-  }, [actionType]);
+
   const previewRef = useRef<SandpackPreviewRef>(null);
 
-  const handleSandboxAction = async () => {
+  const handleSandboxAction = useCallback( async () => {
     try {
       if (!previewRef.current) return;
       const client = previewRef.current.getClient();
@@ -34,7 +32,14 @@ function SandPackPreviewClient({ actionType }: { actionType: string }) {
       const errorMessage = error?.message || "Somthing went wrong!";
       toast.error(errorMessage);
     }
-  };
+      },
+    [actionType],
+  )
+  
+  useEffect(() => {
+    handleSandboxAction();
+  }, [actionType, handleSandboxAction]);
+  
 
   return (
     <SandpackPreview

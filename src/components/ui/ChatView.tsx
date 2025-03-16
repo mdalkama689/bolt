@@ -5,13 +5,12 @@ import axios from "axios";
 import { Loader2, SendHorizonal } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./button";
 import { MessageContext } from "@/context/MessageContext";
 
 function ChatView({ roomId }: { roomId: string }) {
-  
   const { data } = useSession();
 
   const firstChar = data?.user.email?.charAt(0).toUpperCase();
@@ -25,20 +24,17 @@ function ChatView({ roomId }: { roomId: string }) {
 
   const messageContext = useContext(MessageContext);
   if (!messageContext) {
-   return toast.error("Error: messageContext is missing!");
+    toast.error("Error: messageContext is missing!");
+    return null;
   }
 
   const { messages, setMessages } = messageContext;
 
   useEffect(() => {
-    getRoomData();
-  }, []);
-
-  useEffect(() => {
     messageBottomRef?.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const getRoomData = async () => {
+  const getRoomData = useCallback(async () => {
     try {
       setIsPreviousChatLoading(true);
       const response = await axios.post("/api/room", { roomId });
@@ -58,9 +54,13 @@ function ChatView({ roomId }: { roomId: string }) {
     } finally {
       setIsPreviousChatLoading(false);
     }
-  };
+  }, [roomId]);
 
-  const handleSendMessage = async () => {
+  useEffect(() => {
+    getRoomData();
+  }, [getRoomData]);
+
+  const handleSendMessage = useCallback(async () => {
     try {
       if (!prompt.trim()) {
         return toast.error("Please give the prompt!");
@@ -103,8 +103,7 @@ function ChatView({ roomId }: { roomId: string }) {
     } finally {
       setIsGeneratingResponse(false);
     }
-  };
-
+  }, []);
 
   return (
     <div className="h-screen flex flex-col bg-black text-white w-full pt-10 ">
@@ -119,7 +118,7 @@ function ChatView({ roomId }: { roomId: string }) {
         {!isPreviousChatLoading &&
           (messages.length > 0 ? (
             messages.map((message, index) => {
-            const  item =
+              const item =
                 typeof message === "string" ? JSON.parse(message) : message;
 
               return (

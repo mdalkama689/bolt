@@ -1,6 +1,6 @@
 "use client";
 
-import React, {  useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   SandpackProvider,
   SandpackFileExplorer,
@@ -24,47 +24,34 @@ function CodeView({ roomId }: { roomId: string }) {
 
   const messageContext = useContext(MessageContext);
 
+  const messages = messageContext?.messages ?? [];
 
-  const  messages  = messageContext?.messages ?? [];
 
-  useEffect(() => {
-    const lastMessage =  messages?.[messages.length - 1];
-    if (lastMessage?.role === "user") {
-      getCodeResponse();
+  const getRoomData = useCallback(async () => {
+    try {
+      const response = await axios.post("/api/room", { roomId });
+      if (response.data.success) {
+        const responseFiles = response.data.room.files;
+        const responseDependencies = response.data.room.dependencies;
+
+        const combinedCode = { ...staterCode, ...responseFiles };
+        setFiles(combinedCode);
+        setDependencies(responseDependencies);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        error?.response?.data?.message || "Something webt wrong!";
+      toast.error(errorMessage);
     }
-  }, [messages]);
+  }, [roomId]);
 
- 
-
-
-  const getRoomData = useCallback( async () => {
-
-
-      try {
-        const response = await axios.post("/api/room", { roomId });
-        if (response.data.success) {
-          const responseFiles = response.data.room.files;
-          const responseDependencies = response.data.room.dependencies;
-  
-          const combinedCode = { ...staterCode, ...responseFiles };
-          setFiles(combinedCode);
-          setDependencies(responseDependencies);
-        } else {
-          toast.error(response.data.message);
-        }
-      } catch (error: unknown) {
-        const errorMessage =
-          error?.response?.data?.message || "Something webt wrong!";
-        toast.error(errorMessage);
-      
-    };
-  }, [roomId])
-  
   useEffect(() => {
     getRoomData();
   }, [getRoomData]);
-  
-  const getCodeResponse = async () => {
+
+  const getCodeResponse = useCallback(async () => {
     const codeGenerationToastId = toast.loading("Generating code...");
     try {
       setIsActive("code");
@@ -90,15 +77,20 @@ function CodeView({ roomId }: { roomId: string }) {
         error?.response?.data?.message || "Something went wrong!";
       toast.error(errorMessage, { id: codeGenerationToastId });
     }
-  };
+  }, [messages]);
 
+  useEffect(() => {
+    const lastMessage = messages?.[messages.length - 1];
+    if (lastMessage?.role === "user") {
+      getCodeResponse();
+    }
+  }, [messages, getCodeResponse]);
   useEffect(() => {
     setIsActive("preview");
   }, [actionType]);
 
   if (!messageContext) {
-   toast.error("Error: messageContext is missing!");
-
+    toast.error("Error: messageContext is missing!");
   }
 
   const handleAction = (type: string) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -31,7 +31,7 @@ export function Sidebar({ roomId }: { roomId: string }) {
 
   const [isloading, setIsLoading] = useState<boolean>(false);
 
-  const handleCreateRoom = async () => {
+  const handleCreateRoom = useCallback(   async () => {
     setIsLoading(true);
     const loadingToast = toast.loading("New room is creating...");
     try {
@@ -50,26 +50,33 @@ export function Sidebar({ roomId }: { roomId: string }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+    ,[],
+  )
+  
 
+  const getAllTitle =useCallback(
+    async () => {
+      try {
+        const response = await axios.get(`/api/get-all-title/${roomId}`);
+        if (response.data.success) {
+          setRoomData(response.data.roomData);
+        } else {
+          toast.error(response.data.message);
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error?.response?.data?.message || "Something went wrong!";
+        toast.error(errorMessage);
+      }
+    }, 
+    [],
+  )
+  
+  
   useEffect(() => {
     getAllTitle();
-  }, []);
-
-  const getAllTitle = async () => {
-    try {
-      const response = await axios.get(`/api/get-all-title/${roomId}`);
-      if (response.data.success) {
-        setRoomData(response.data.roomData);
-      } else {
-        toast.error(response.data.message);
-      }
-    } catch (error: unknown) {
-      const errorMessage =
-        error?.response?.data?.message || "Something went wrong!";
-      toast.error(errorMessage);
-    }
-  };
+  }, [getAllTitle]);
 
   const handleSignout = () => {
     signOut();
