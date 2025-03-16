@@ -11,6 +11,10 @@ import { Button } from "./button";
 import { MessageContext } from "@/context/MessageContext";
 
 function ChatView({ roomId }: { roomId: string }) {
+  
+  const { data } = useSession();
+
+  const firstChar = data?.user.email?.charAt(0).toUpperCase();
   const router = useRouter();
   const [isGeneratingResponse, setIsGeneratingResponse] =
     useState<boolean>(false);
@@ -101,9 +105,6 @@ function ChatView({ roomId }: { roomId: string }) {
     }
   };
 
-  const { data } = useSession();
-
-  const firstChar = data?.user.email?.charAt(0).toUpperCase();
 
   return (
     <div className="h-screen flex flex-col bg-black text-white w-full pt-10 ">

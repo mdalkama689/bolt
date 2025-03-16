@@ -1,6 +1,6 @@
 "use client";
 
-import React, {  useContext, useEffect, useState } from "react";
+import React, {  useCallback, useContext, useEffect, useState } from "react";
 import {
   SandpackProvider,
   SandpackFileExplorer,
@@ -34,30 +34,36 @@ function CodeView({ roomId }: { roomId: string }) {
     }
   }, [messages]);
 
+ 
+
+
+  const getRoomData = useCallback( async () => {
+
+
+      try {
+        const response = await axios.post("/api/room", { roomId });
+        if (response.data.success) {
+          const responseFiles = response.data.room.files;
+          const responseDependencies = response.data.room.dependencies;
+  
+          const combinedCode = { ...staterCode, ...responseFiles };
+          setFiles(combinedCode);
+          setDependencies(responseDependencies);
+        } else {
+          toast.error(response.data.message);
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error?.response?.data?.message || "Something webt wrong!";
+        toast.error(errorMessage);
+      
+    };
+  }, [roomId])
+  
   useEffect(() => {
     getRoomData();
-  }, []);
-
-  const getRoomData = async () => {
-    try {
-      const response = await axios.post("/api/room", { roomId });
-      if (response.data.success) {
-        const responseFiles = response.data.room.files;
-        const responseDependencies = response.data.room.dependencies;
-
-        const combinedCode = { ...staterCode, ...responseFiles };
-        setFiles(combinedCode);
-        setDependencies(responseDependencies);
-      } else {
-        toast.error(response.data.message);
-      }
-    } catch (error: unknown) {
-      const errorMessage =
-        error?.response?.data?.message || "Something webt wrong!";
-      toast.error(errorMessage);
-    }
-  };
-
+  }, [getRoomData]);
+  
   const getCodeResponse = async () => {
     const codeGenerationToastId = toast.loading("Generating code...");
     try {
@@ -92,7 +98,7 @@ function CodeView({ roomId }: { roomId: string }) {
 
   if (!messageContext) {
    toast.error("Error: messageContext is missing!");
-   return null
+
   }
 
   const handleAction = (type: string) => {
