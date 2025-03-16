@@ -6,16 +6,14 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 function SandPackPreviewClient({ actionType }: { actionType: string }) {
-
   const previewRef = useRef<SandpackPreviewRef>(null);
 
-  const handleSandboxAction = useCallback( async () => {
+  const handleSandboxAction = useCallback(async () => {
     try {
       if (!previewRef.current) return;
       const client = previewRef.current.getClient();
       if (client) {
         const result = await client.getCodeSandboxURL();
-
         if (actionType === "deploy") {
           if (result.sandboxId) {
             const url = `https://${result.sandboxId}.csb.app`;
@@ -28,18 +26,15 @@ function SandPackPreviewClient({ actionType }: { actionType: string }) {
           }
         }
       }
-    } catch (error: unknown) {
-      const errorMessage = error?.message || "Somthing went wrong!";
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message :  "Somthing went wrong!";
       toast.error(errorMessage);
     }
-      },
-    [actionType],
-  )
-  
+  }, [actionType]);
+
   useEffect(() => {
     handleSandboxAction();
   }, [actionType, handleSandboxAction]);
-  
 
   return (
     <SandpackPreview

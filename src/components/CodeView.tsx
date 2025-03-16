@@ -10,11 +10,12 @@ import {
 import { staterCode, tailwindCDN } from "@/utils/boilerPlateCode";
 import { MessageContext } from "@/context/MessageContext";
 import { toast } from "sonner";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { CODE_GENERATE_PROMPT } from "@/utils/prompt";
 import { Button } from "./ui/button";
 import { FileUp, Rocket } from "lucide-react";
 import SandPackPreviewClient from "./SandPackPreviewClient";
+import { ApiResponse } from "@/utils/ApiResponse";
 
 function CodeView({ roomId }: { roomId: string }) {
   const [isActive, setIsActive] = useState<string>("code");
@@ -29,7 +30,7 @@ function CodeView({ roomId }: { roomId: string }) {
 
   const getRoomData = useCallback(async () => {
     try {
-      const response = await axios.post("/api/room", { roomId });
+      const response = await axios.post<ApiResponse>("/api/room", { roomId });
       if (response.data.success) {
         const responseFiles = response.data.room.files;
         const responseDependencies = response.data.room.dependencies;
@@ -41,8 +42,8 @@ function CodeView({ roomId }: { roomId: string }) {
         toast.error(response.data.message);
       }
     } catch (error: unknown) {
-      const errorMessage =
-        error?.response?.data?.message || "Something webt wrong!";
+      const axiosError = error as AxiosError<ApiResponse>
+      const errorMessage = axiosError.response?.data.message ??  "Something webt wrong!";
       toast.error(errorMessage);
     }
   }, [roomId]);
@@ -56,7 +57,7 @@ function CodeView({ roomId }: { roomId: string }) {
     try {
       setIsActive("code");
       const PROMPT = JSON.stringify(messages) + " " + CODE_GENERATE_PROMPT;
-      const response = await axios.post("/api/ai-code-response", {
+      const response = await axios.post<ApiResponse>("/api/ai-code-response", {
         prompt: PROMPT,
         roomId,
       });
@@ -72,9 +73,9 @@ function CodeView({ roomId }: { roomId: string }) {
       } else {
         toast.error(response.data.message, { id: codeGenerationToastId });
       }
-    } catch (error: unknown) {
-      const errorMessage =
-        error?.response?.data?.message || "Something went wrong!";
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>
+      const errorMessage = axiosError.response?.data.message ?? "Something went wrong!";
       toast.error(errorMessage, { id: codeGenerationToastId });
     }
   }, [messages]);

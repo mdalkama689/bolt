@@ -16,10 +16,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import signUpSchema from "@/types/signup-schema";
 import { toast } from "sonner";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ApiResponse } from "@/utils/ApiResponse";
 
 function Signup() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -36,14 +37,13 @@ function Signup() {
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     try {
       setIsLoading(true);
-      const response = await axios.post("/api/signup", data);
+      const response = await axios.post<ApiResponse>("/api/signup", data);
       if (response.data.success) {
         router.push("/signin");
       }
-    } catch (error: unknown) {
-      console.log(error);
-      const errorMessage =
-        error?.response?.data?.message || "Somthing went wrong during signup!";
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>
+      const errorMessage = axiosError.response?.data.message??  "Somthing went wrong during signup!";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

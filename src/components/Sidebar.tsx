@@ -11,12 +11,13 @@ import {
 } from "@/components/ui/sheet";
 import { LogOut, Menu, MessageCircle, Twitter } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import Link from "next/link";
 import { v4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { ApiResponse } from "@/utils/ApiResponse";
 
 interface IRoomData {
   title: string;
@@ -36,15 +37,15 @@ export function Sidebar({ roomId }: { roomId: string }) {
     const loadingToast = toast.loading("New room is creating...");
     try {
       const roomId = v4();
-      const response = await axios.post("/api/create-room", { roomId });
+      const response = await axios.post<ApiResponse>("/api/create-room", { roomId });
 
       if (response.data.success) {
         toast.success(response.data.message, { id: loadingToast });
         router.push(`/room/${roomId}`);
       }
-    } catch (error: unknown) {
-      const errorMessage =
-        error?.response?.data?.message || "Something went wrong!";
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>
+      const errorMessage = axiosError.response?.data.message ?? "Something went wrong!";
 
       toast.error(errorMessage, { id: loadingToast });
     } finally {
@@ -58,15 +59,15 @@ export function Sidebar({ roomId }: { roomId: string }) {
   const getAllTitle =useCallback(
     async () => {
       try {
-        const response = await axios.get(`/api/get-all-title/${roomId}`);
+        const response = await axios.get<ApiResponse>(`/api/get-all-title/${roomId}`);
         if (response.data.success) {
           setRoomData(response.data.roomData);
         } else {
           toast.error(response.data.message);
         }
-      } catch (error: unknown) {
-        const errorMessage =
-          error?.response?.data?.message || "Something went wrong!";
+      } catch (error ) {
+        const axiosError  = error as AxiosError<ApiResponse>
+        const errorMessage = axiosError.response?.data.message ??  "Something went wrong!";
         toast.error(errorMessage);
       }
     }, 

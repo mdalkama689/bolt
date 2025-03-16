@@ -1,7 +1,7 @@
 "use client";
 
 import { CHAT_GENERATE_PROMPT } from "@/utils/prompt";
-import axios from "axios";
+import axios, { Axios, AxiosError } from "axios";
 import { Loader2, SendHorizonal } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./button";
 import { MessageContext } from "@/context/MessageContext";
+import { ApiResponse } from "@/utils/ApiResponse";
 
 function ChatView({ roomId }: { roomId: string }) {
   const { data } = useSession();
@@ -37,7 +38,7 @@ function ChatView({ roomId }: { roomId: string }) {
   const getRoomData = useCallback(async () => {
     try {
       setIsPreviousChatLoading(true);
-      const response = await axios.post("/api/room", { roomId });
+      const response = await axios.post<ApiResponse>("/api/room", { roomId });
 
       if (response.data.success) {
         setMessages(response.data.room.message);
@@ -46,11 +47,12 @@ function ChatView({ roomId }: { roomId: string }) {
         router.push("/");
         return;
       }
-    } catch (error: unknown) {
-      const errroMessage =
-        error?.response?.data?.message || "Something went wrong";
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>;
+      const errorMessage =
+        axiosError.response?.data.message ?? "Something went wrong";
 
-      toast.error(errroMessage);
+      toast.error(errorMessage);
     } finally {
       setIsPreviousChatLoading(false);
     }
@@ -79,7 +81,7 @@ function ChatView({ roomId }: { roomId: string }) {
       const combinedPrompt =
         JSON.stringify(combinedMessage) + " " + CHAT_GENERATE_PROMPT;
 
-      const response = await axios.post("/api/ai-chat-response", {
+      const response = await axios.post<ApiResponse>("/api/ai-chat-response", {
         prompt,
         roomId,
         combinedPrompt,
@@ -95,9 +97,10 @@ function ChatView({ roomId }: { roomId: string }) {
         };
         setMessages((prev) => [...prev, aiMessage]);
       }
-    } catch (error: unknown) {
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>;
       const errroMessage =
-        error?.response?.data?.message || "Something went wrong";
+        axiosError.response?.data.message || "Something went wrong";
 
       toast.error(errroMessage);
     } finally {

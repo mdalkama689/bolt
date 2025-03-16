@@ -38,10 +38,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       message: "Room chat fetch successfully!",
       room,
     });
-  } catch (error: unknown) {
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Error during fetching the room ";
     return NextResponse.json({
       success: false,
-      message: error?.message || "Error during fetching the room ",
+      message: errorMessage,
     });
   }
 }

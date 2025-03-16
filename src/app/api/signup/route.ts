@@ -37,7 +37,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const hashedPassword = await bcrypt.hash(parseData.data.password, 10);
 
-   await prisma.user.create({
+    await prisma.user.create({
       data: {
         fullName: parseData.data.fullName,
         email: parseData.data.email,
@@ -52,11 +52,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
       { status: 200 }
     );
-  } catch (error: unknown) {
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Somthing went wrong during signup!";
     return NextResponse.json(
       {
         success: false,
-        message: error?.message || "Somthing went wrong during signup!",
+        message: errorMessage,
       },
       { status: 400 }
     );

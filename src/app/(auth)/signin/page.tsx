@@ -20,6 +20,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import signInSchema from "@/types/signin-schema";
+import { ApiResponse } from "@/utils/ApiResponse";
 
 function Signin() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -44,9 +45,11 @@ function Signin() {
         toast.success("signin successfully!");
         router.push("/");
       }
-    } catch (error: unknown) {
-      console.log(error);
-      const errorMessage =  error?.response?.data?.message || "Somthing went wrong during signin!";
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Somthing went wrong during signin!";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

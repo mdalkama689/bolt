@@ -2,12 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "next-auth/react";
 import { MessageSquarePlus, Sparkles } from "lucide-react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { v4 } from "uuid";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ApiResponse } from "@/utils/ApiResponse";
 
 function LandingPage() {
   const { status, data } = useSession();
@@ -21,15 +22,18 @@ function LandingPage() {
     const loadingToast = toast.loading("New room is creating...");
     try {
       const roomId = v4();
-      const response = await axios.post("/api/create-room", { roomId });
+      const response = await axios.post<ApiResponse>("/api/create-room", {
+        roomId,
+      });
 
       if (response.data.success) {
         toast.success(response.data.message, { id: loadingToast });
         router.push(`/room/${roomId}`);
       }
-    } catch (error: unknown) {
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>;
       const errorMessage =
-        error?.response?.data?.message || "Something went wrong!";
+        axiosError.response?.data.message ?? "Something went wrong!";
 
       toast.error(errorMessage, { id: loadingToast });
     } finally {
