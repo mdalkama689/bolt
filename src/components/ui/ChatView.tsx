@@ -62,7 +62,7 @@ function ChatView({ roomId }: { roomId: string }) {
     getRoomData();
   }, [getRoomData]);
 
-  const handleSendMessage = useCallback(async () => {
+  const handleSendMessage =  async () => {
     try {
       if (!prompt.trim()) {
         return toast.error("Please give the prompt!");
@@ -106,7 +106,7 @@ function ChatView({ roomId }: { roomId: string }) {
     } finally {
       setIsGeneratingResponse(false);
     }
-  }, []);
+  } 
 
   return (
     <div className="h-screen flex flex-col bg-black text-white w-full pt-10 ">
